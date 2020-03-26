@@ -1,5 +1,8 @@
-# syntax = docker/dockerfile:experimental
 FROM node:13.10.1-alpine
+
+COPY ./ /usr/src/app/
+
+WORKDIR /usr/src/app/
 
 RUN apk update && \
     npm install -g npm @vue/cli
@@ -7,19 +10,16 @@ RUN apk update && \
 RUN apk add --no-cache \
     git \
     bash \
-    openssh \
-    make
+    make \
+    grep \
+    openssh
 
-RUN --mount=type=secret,id=ssh,dst=/root/.ssh/id_rsa \
-    ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts && \
-    git clone git@github.com:iridon0920/geo-memo.git /usr/src/app/geo-memo && \
-    git clone git@github.com:awslabs/git-secrets.git /var/opt/git-secrets && \
+RUN git clone https://github.com/awslabs/git-secrets /var/opt/git-secrets && \
     cd /var/opt/git-secrets && \
     make install
 
-WORKDIR /usr/src/app/geo-memo
-
-RUN git secrets --install
+RUN git secrets --install -f && \
+    git secrets --register-aws
 
 EXPOSE 80
 
