@@ -7,3 +7,4 @@ services:
             - 80:80
         volumes:
             - ./:/usr/src/app
+            - $SSH_PATH:/root/.ssh
