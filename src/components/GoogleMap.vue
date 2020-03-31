@@ -6,6 +6,7 @@
       :options="{streetViewControl: false}"
       map-type-id="terrain"
       class="google-map"
+      @click="openMemoWindow($event)"
     >
       <GmapInfoWindow
         :options="infoOptions"
@@ -46,21 +47,37 @@ export default {
       this.infoWindowPos = marker.position;
       this.infoWinOpen = true;
       this.infoValue = marker.text;
+    },
+    async openMemoWindow($event) {
+      const lat = $event.latLng.lat();
+      const lng = $event.latLng.lng();
+      await this.axios.post(
+        "http://geo-memo-api-lb-24391501.ap-northeast-1.elb.amazonaws.com/api/memo/",
+        {
+          text: "map_test",
+          latitude: lat,
+          longitude: lng
+        }
+      );
+      this.loadMarkers();
+    },
+    loadMarkers() {
+      this.axios
+        .get(
+          "http://geo-memo-api-lb-24391501.ap-northeast-1.elb.amazonaws.com/api/memo/"
+        )
+        .then(response => {
+          for (let res of response.data) {
+            this.markers.push({
+              position: { lat: res.latitude, lng: res.longitude },
+              text: res.text
+            });
+          }
+        });
     }
   },
   mounted: function() {
-    this.axios
-      .get(
-        "http://geo-memo-api-lb-24391501.ap-northeast-1.elb.amazonaws.com/api/memo/"
-      )
-      .then(response => {
-        for (let res of response.data) {
-          this.markers.push({
-            position: { lat: res.latitude, lng: res.longitude },
-            text: res.text
-          });
-        }
-      });
+    this.loadMarkers();
   }
 };
 </script>
