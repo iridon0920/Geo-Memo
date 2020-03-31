@@ -22,6 +22,12 @@
         @click="toggleInfoWindow(m)"
       />
     </GmapMap>
+    <el-dialog title="入力地点へメモ入力" :visible.sync="dialogFormVisible" width="20%">
+      <el-input v-model="dialogText"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="createMemo">メモ作成</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -39,7 +45,11 @@ export default {
       },
       infoWindowPos: null,
       infoWinOpen: false,
-      infoValue: ""
+      infoValue: "",
+      dialogFormVisible: false,
+      dialogText: "",
+      lat: 0,
+      lng: 0
     };
   },
   methods: {
@@ -48,15 +58,19 @@ export default {
       this.infoWinOpen = true;
       this.infoValue = marker.text;
     },
-    async openMemoWindow($event) {
-      const lat = $event.latLng.lat();
-      const lng = $event.latLng.lng();
+    openMemoWindow($event) {
+      (this.dialogText = ""), (this.lat = $event.latLng.lat());
+      this.lng = $event.latLng.lng();
+      this.dialogFormVisible = true;
+    },
+    async createMemo() {
+      this.dialogFormVisible = false;
       await this.axios.post(
         "http://geo-memo-api-lb-24391501.ap-northeast-1.elb.amazonaws.com/api/memo/",
         {
-          text: "map_test",
-          latitude: lat,
-          longitude: lng
+          text: this.dialogText,
+          latitude: this.lat,
+          longitude: this.lng
         }
       );
       this.loadMarkers();
